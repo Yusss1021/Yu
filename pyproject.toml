@@ -1,0 +1,76 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vuln_scanner"
+version = "1.0.0"
+description = "Internal Network Vulnerability Scanner & Risk Assessment System"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Huang Haoyu", email = "2200350219@example.edu.cn"}
+]
+keywords = ["security", "vulnerability", "scanner", "network", "assessment"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Environment :: Web Environment",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+]
+dependencies = [
+    "scapy>=2.5.0",
+    "python-nmap>=0.7.1",
+    "requests>=2.31.0",
+    "flask>=3.0.0",
+    "jinja2>=3.1.0",
+    "click>=8.1.0",
+    "rich>=13.0.0",
+    "python-dateutil>=2.8.0",
+    "ijson>=3.2.0",
+    "weasyprint>=60.0",
+    "matplotlib>=3.7.0",
+    "apscheduler>=3.10.0",
+]
+
+[project.optional-dependencies]
+verify = [
+    "paramiko>=3.4.0",
+    "pymysql>=1.1.0",
+]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+]
+
+[project.scripts]
+vulnscan = "cli.main:main"
+
+[project.urls]
+Homepage = "https://github.com/example/vuln_scanner"
+
+[tool.setuptools.packages.find]
+where = ["src", "."]
+include = ["vulnscan*", "cli*", "web*"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310", "py311", "py312"]
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "W", "I", "N"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]

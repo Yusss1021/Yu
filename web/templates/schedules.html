@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}定时扫描 - {{ i18n.title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-calendar-week me-2"></i>定时扫描任务</h2>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addScheduleModal">
+        <i class="bi bi-plus-lg me-1"></i> 添加任务
+    </button>
+</div>
+
+{% if schedules %}
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>名称</th>
+                <th>目标</th>
+                <th>Cron 表达式</th>
+                <th>状态</th>
+                <th>上次运行</th>
+                <th>下次运行</th>
+                <th class="text-end">操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for schedule in schedules %}
+            <tr>
+                <td>
+                    <span class="fw-medium">{{ schedule.name }}</span>
+                </td>
+                <td>
+                    <code>{{ schedule.target_range }}</code>
+                </td>
+                <td>
+                    <code>{{ schedule.cron_expr }}</code>
+                </td>
+                <td>
+                    {% if schedule.is_enabled %}
+                    <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>启用</span>
+                    {% else %}
+                    <span class="badge bg-secondary"><i class="bi bi-pause-circle me-1"></i>禁用</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if schedule.last_run %}
+                    {{ schedule.last_run.strftime('%Y-%m-%d %H:%M') }}
+                    {% else %}
+                    <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if schedule.next_run %}
+                    {{ schedule.next_run.strftime('%Y-%m-%d %H:%M') }}
+                    {% else %}
+                    <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+                <td class="text-end">
+                    <form action="{{ url_for('views.schedule_toggle', schedule_id=schedule.id) }}" method="post" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-sm btn-outline-{{ 'warning' if schedule.is_enabled else 'success' }}" title="{{ '禁用' if schedule.is_enabled else '启用' }}" aria-label="{{ '禁用任务' if schedule.is_enabled else '启用任务' }}">
+                            <i class="bi bi-{{ 'pause' if schedule.is_enabled else 'play' }}-fill"></i>
+                        </button>
+                    </form>
+                    <form action="{{ url_for('views.schedule_delete', schedule_id=schedule.id) }}" method="post" class="d-inline" onsubmit="return confirm('确定删除此任务？')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-sm btn-outline-danger" title="删除" aria-label="删除任务">
+                            <i class="bi bi-trash-fill"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="text-center py-5">
+    <i class="bi bi-calendar-x display-1 text-muted mb-3 d-block"></i>
+    <p class="text-muted mb-3">暂无定时扫描任务</p>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addScheduleModal">
+        <i class="bi bi-plus-lg me-1"></i> 添加第一个任务
+    </button>
+</div>
+{% endif %}
+
+<div class="modal fade" id="addScheduleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('views.schedule_add') }}" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-calendar-plus me-2"></i>添加定时扫描</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">任务名称</label>
+                        <input type="text" class="form-control" id="name" name="name" required placeholder="例: 每日内网扫描">
+                    </div>
+                    <div class="mb-3">
+                        <label for="target" class="form-label">扫描目标</label>
+                        <input type="text" class="form-control" id="target" name="target" required placeholder="例: 192.168.1.0/24">
+                    </div>
+                    <div class="mb-3">
+                        <label for="cron" class="form-label">Cron 表达式</label>
+                        <input type="text" class="form-control" id="cron" name="cron" required placeholder="例: 0 2 * * *">
+                        <div class="form-text">格式: 分 时 日 月 周 (例: <code>0 2 * * *</code> 表示每天凌晨2点)</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="method" class="form-label">发现方式</label>
+                            <select class="form-select" id="method" name="method">
+                                <option value="icmp">ICMP Ping</option>
+                                <option value="arp">ARP</option>
+                                <option value="syn">SYN</option>
+                                <option value="all">全部</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="ports" class="form-label">端口范围</label>
+                            <input type="text" class="form-control" id="ports" name="ports" value="1-1024" placeholder="1-1024">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>创建</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <i class="bi bi-info-circle me-1"></i> Cron 表达式说明
+    </div>
+    <div class="card-body">
+        <table class="table table-sm mb-0">
+            <thead>
+                <tr>
+                    <th>表达式</th>
+                    <th>含义</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td><code>0 2 * * *</code></td><td>每天凌晨 2:00</td></tr>
+                <tr><td><code>0 */6 * * *</code></td><td>每 6 小时</td></tr>
+                <tr><td><code>0 9 * * 1</code></td><td>每周一 9:00</td></tr>
+                <tr><td><code>0 0 1 * *</code></td><td>每月 1 日 0:00</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

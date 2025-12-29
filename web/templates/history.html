@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}{{ i18n.history }} - {{ i18n.title }}{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="page-header mb-0">
+        <h2><i class="bi bi-clock-history me-2"></i>{{ i18n.history }}</h2>
+        <p class="mb-0">View all previous scan records and results</p>
+    </div>
+    <a href="{{ url_for('views.new_scan') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i> {{ i18n.new_scan }}
+    </a>
+</div>
+
+<!-- Scan History Table -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>All Scans</h5>
+        {% if scans %}
+        <small class="text-muted">{{ scans|length }} records</small>
+        {% endif %}
+    </div>
+    <div class="card-body p-0">
+        {% if scans %}
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>{{ i18n.target }}</th>
+                        <th>{{ i18n.status }}</th>
+                        <th>{{ i18n.started }}</th>
+                        <th>Finished</th>
+                        <th>Duration</th>
+                        <th class="text-end">{{ i18n.actions }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for scan in scans %}
+                    <tr>
+                        <td><span class="text-muted">#</span>{{ scan.id }}</td>
+                        <td><code>{{ scan.target_range }}</code></td>
+                        <td>
+                            {% if scan.status.value == 'completed' %}
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle-fill me-1"></i>{{ i18n.completed }}
+                            </span>
+                            {% elif scan.status.value == 'running' %}
+                            <span class="badge bg-primary">
+                                <span class="spinner-border spinner-border-sm me-1"></span>
+                                {{ i18n.scanning }}
+                            </span>
+                            {% elif scan.status.value == 'failed' %}
+                            <span class="badge bg-danger">
+                                <i class="bi bi-x-circle-fill me-1"></i>{{ i18n.failed }}
+                            </span>
+                            {% else %}
+                            <span class="badge bg-secondary">
+                                <i class="bi bi-hourglass me-1"></i>{{ i18n.pending }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted">
+                            <i class="bi bi-calendar-event me-1"></i>
+                            {{ scan.started_at.strftime('%Y-%m-%d %H:%M') if scan.started_at else '-' }}
+                        </td>
+                        <td class="text-muted">
+                            {{ scan.finished_at.strftime('%Y-%m-%d %H:%M') if scan.finished_at else '-' }}
+                        </td>
+                        <td class="text-muted">
+                            {% if scan.started_at and scan.finished_at %}
+                                {% set duration = (scan.finished_at - scan.started_at).total_seconds() %}
+                                {% if duration < 60 %}
+                                    <i class="bi bi-stopwatch me-1"></i>{{ '%.0f'|format(duration) }}s
+                                {% else %}
+                                    <i class="bi bi-stopwatch me-1"></i>{{ '%.1f'|format(duration/60) }}min
+                                {% endif %}
+                            {% elif scan.status.value == 'running' %}
+                                <span class="text-primary">In progress...</span>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group">
+                                <a href="{{ url_for('views.scan_detail', scan_id=scan.id) }}"
+                                   class="btn btn-sm btn-outline-primary"
+                                   title="View Details">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                {% if scan.status.value == 'completed' %}
+                                <a href="{{ url_for('api.generate_report', scan_id=scan.id) }}"
+                                   class="btn btn-sm btn-outline-success"
+                                   title="Download Report">
+                                    <i class="bi bi-file-earmark-arrow-down"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="mb-4">
+                <i class="bi bi-inbox text-muted" style="font-size: 4rem; opacity: 0.5;"></i>
+            </div>
+            <h5 class="text-muted mb-2">No Scan History</h5>
+            <p class="text-muted mb-4">You haven't performed any scans yet.</p>
+            <a href="{{ url_for('views.new_scan') }}" class="btn btn-primary">
+                <i class="bi bi-radar me-2"></i>Start Your First Scan
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Quick Stats (if scans exist) -->
+{% if scans %}
+<div class="row g-4 mt-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="mb-2">
+                    <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
+                </div>
+                <h4 class="mb-1">{{ scans|selectattr('status.value', 'equalto', 'completed')|list|length }}</h4>
+                <small class="text-muted">Completed Scans</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="mb-2">
+                    <i class="bi bi-play-circle text-primary" style="font-size: 2rem;"></i>
+                </div>
+                <h4 class="mb-1">{{ scans|selectattr('status.value', 'equalto', 'running')|list|length }}</h4>
+                <small class="text-muted">Running Scans</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="mb-2">
+                    <i class="bi bi-x-circle text-danger" style="font-size: 2rem;"></i>
+                </div>
+                <h4 class="mb-1">{{ scans|selectattr('status.value', 'equalto', 'failed')|list|length }}</h4>
+                <small class="text-muted">Failed Scans</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

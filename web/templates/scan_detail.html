@@ -1,0 +1,421 @@
+{% extends "base.html" %}
+
+{% block title %}{{ i18n.scan_details }} #{{ scan.id }} - {{ i18n.title }}{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div class="page-header">
+        <h2><i class="bi bi-file-earmark-text me-2"></i>{{ i18n.scan_details }} #{{ scan.id }}</h2>
+        <p>
+            <i class="bi bi-crosshair me-1"></i> <strong>{{ scan.target_range }}</strong>
+            <span class="mx-2 text-muted">|</span>
+            <i class="bi bi-calendar me-1"></i> {{ scan.started_at.strftime('%Y-%m-%d %H:%M:%S') if scan.started_at else '-' }}
+        </p>
+    </div>
+    <div>
+        <a href="{{ url_for('views.topology', scan_id=scan.id) }}" class="btn btn-outline-info me-2">
+            <i class="bi bi-diagram-3-fill me-1"></i> 网络拓扑
+        </a>
+        <a href="{{ url_for('api.generate_report', scan_id=scan.id, format='pdf') }}" class="btn btn-outline-primary me-2">
+            <i class="bi bi-file-pdf-fill me-1"></i> PDF
+        </a>
+        <a href="{{ url_for('api.generate_report', scan_id=scan.id) }}" class="btn btn-success">
+            <i class="bi bi-file-earmark-arrow-down me-1"></i> {{ i18n.export_report }}
+        </a>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="summary-card card-info">
+            <h3>{{ summary.total_hosts }}</h3>
+            <small>{{ i18n.hosts_scanned }}</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="summary-card card-critical">
+            <h3>{{ summary.critical_hosts }}</h3>
+            <small>Critical Hosts</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="summary-card card-high">
+            <h3>{{ summary.high_hosts }}</h3>
+            <small>High Risk Hosts</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="summary-card card-warning">
+            <h3>{{ summary.total_vulnerabilities }}</h3>
+            <small>{{ i18n.vulns_found }}</small>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-pie-chart-fill me-2"></i>Risk Distribution</h5>
+            </div>
+            <div class="card-body">
+                <div id="risk-chart" style="height: 320px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-bar-chart-fill me-2"></i>Top Hosts by Risk</h5>
+            </div>
+            <div class="card-body">
+                <div id="hosts-chart" style="height: 320px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Host List -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5><i class="bi bi-hdd-stack me-2"></i>{{ i18n.host_list }}</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>{{ i18n.ip_address }}</th>
+                        <th>{{ i18n.hostname }}</th>
+                        <th>{{ i18n.os }}</th>
+                        <th>{{ i18n.services }}</th>
+                        <th>{{ i18n.risk_score }}</th>
+                        <th>{{ i18n.risk_level }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in host_data %}
+                    <tr>
+                        <td><code>{{ item.host.ip }}</code></td>
+                        <td>{{ item.host.hostname or '-' }}</td>
+                        <td class="text-muted">{{ item.host.os_guess[:30] + '...' if item.host.os_guess and item.host.os_guess|length > 30 else item.host.os_guess or '-' }}</td>
+                        <td>
+                            <span class="badge bg-info">{{ item.services|length }} ports</span>
+                        </td>
+                        <td>
+                            {% if item.risk %}
+                            <strong style="color: {% if item.risk.risk_score >= 70 %}#FF6B6B{% elif item.risk.risk_score >= 40 %}#FFA94D{% elif item.risk.risk_score >= 20 %}#FFD93D{% else %}#69DB7C{% endif %}">
+                                {{ '%.1f'|format(item.risk.risk_score) }}
+                            </strong>
+                            {% else %}
+                            <span class="text-muted">0.0</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.risk %}
+                                {% set level = item.risk.risk_level.value %}
+                                {% if level == 'Critical' %}
+                                <span class="badge bg-danger">{{ level }}</span>
+                                {% elif level == 'High' %}
+                                <span class="badge bg-warning">{{ level }}</span>
+                                {% elif level == 'Medium' %}
+                                <span class="badge bg-info">{{ level }}</span>
+                                {% else %}
+                                <span class="badge bg-success">{{ level }}</span>
+                                {% endif %}
+                            {% else %}
+                            <span class="badge bg-secondary">N/A</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Vulnerabilities -->
+{% if vulnerabilities %}
+<div class="card">
+    <div class="card-header">
+        <h5><i class="bi bi-bug-fill me-2"></i>{{ i18n.vulnerabilities }} ({{ vulnerabilities|length }})</h5>
+    </div>
+    <div class="card-body">
+        <div class="accordion" id="vulnAccordion">
+            {% for vuln in vulnerabilities[:30] %}
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#vuln{{ loop.index }}">
+                        {% if vuln.severity %}
+                            {% set sev = vuln.severity.value %}
+                            {% if sev == 'CRITICAL' %}
+                            <span class="badge bg-danger me-2">CRITICAL</span>
+                            {% elif sev == 'HIGH' %}
+                            <span class="badge bg-warning me-2">HIGH</span>
+                            {% elif sev == 'MEDIUM' %}
+                            <span class="badge bg-info me-2">MEDIUM</span>
+                            {% else %}
+                            <span class="badge bg-secondary me-2">{{ sev }}</span>
+                            {% endif %}
+                        {% endif %}
+                        <strong>{{ vuln.cve_id }}</strong>
+                        <span class="ms-auto me-3 text-muted">
+                            CVSS: <strong style="color: {% if vuln.cvss_base >= 9 %}#FF6B6B{% elif vuln.cvss_base >= 7 %}#FFA94D{% elif vuln.cvss_base >= 4 %}#FFD93D{% else %}#69DB7C{% endif %}">
+                                {{ vuln.cvss_base or 'N/A' }}
+                            </strong>
+                        </span>
+                    </button>
+                </h2>
+                <div id="vuln{{ loop.index }}" class="accordion-collapse collapse">
+                    <div class="accordion-body">
+                        <p>{{ vuln.description or 'No description available.' }}</p>
+                        {% if vuln.affected_cpe %}
+                        <p class="mb-0">
+                            <i class="bi bi-tag me-1"></i>
+                            <strong>Affected:</strong> <code>{{ vuln.affected_cpe }}</code>
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% if vulnerabilities|length > 30 %}
+        <p class="text-muted text-center mt-3">
+            <i class="bi bi-info-circle me-1"></i>
+            Showing 30 of {{ vulnerabilities|length }} vulnerabilities. Export report for full list.
+        </p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Remediation Recommendations -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5><i class="bi bi-shield-check me-2"></i>修复建议</h5>
+    </div>
+    <div class="card-body">
+        <div id="remediation-loading" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="text-muted mt-2">加载修复建议...</p>
+        </div>
+        <div id="remediation-content" style="display: none;">
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="p-3 border border-danger rounded text-center">
+                        <div class="text-danger fw-bold fs-4" id="rec-critical">0</div>
+                        <small class="text-muted">Critical</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 border border-warning rounded text-center">
+                        <div class="text-warning fw-bold fs-4" id="rec-high">0</div>
+                        <small class="text-muted">High</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 border border-info rounded text-center">
+                        <div class="text-info fw-bold fs-4" id="rec-medium">0</div>
+                        <small class="text-muted">Medium</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 border border-secondary rounded text-center">
+                        <div class="text-secondary fw-bold fs-4" id="rec-low">0</div>
+                        <small class="text-muted">Low</small>
+                    </div>
+                </div>
+            </div>
+            <div id="remediation-list"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// === ECharts Dark Security Theme ===
+var chartTextColor = '#C9D1D9';
+var chartMutedColor = '#8B949E';
+var chartBorderColor = '#30363D';
+var chartBgColor = 'rgba(22, 27, 34, 0.95)';
+
+// Severity Colors (降低饱和度)
+var colorCritical = '#FF6B6B';
+var colorHigh = '#FFA94D';
+var colorMedium = '#FFD93D';
+var colorLow = '#69DB7C';
+
+// Risk Distribution Pie Chart
+var riskChart = echarts.init(document.getElementById('risk-chart'));
+var colorInfo = '#58A6FF';  // Blue for Info level
+
+var riskData = [
+    { value: {{ summary.critical_hosts }}, name: 'Critical', itemStyle: { color: colorCritical } },
+    { value: {{ summary.high_hosts }}, name: 'High', itemStyle: { color: colorHigh } },
+    { value: {{ summary.medium_hosts }}, name: 'Medium', itemStyle: { color: colorMedium } },
+    { value: {{ summary.low_hosts }}, name: 'Low', itemStyle: { color: colorLow } },
+    { value: {{ summary.info_hosts|default(0) }}, name: 'Info', itemStyle: { color: colorInfo } }
+].filter(d => d.value > 0);
+
+// If no risk data, show "Safe" placeholder
+if (riskData.length === 0) {
+    riskData = [{ value: 1, name: 'No Risk', itemStyle: { color: '#238636' } }];
+}
+
+riskChart.setOption({
+    tooltip: {
+        trigger: 'item',
+        formatter: '{b}: {c} ({d}%)',
+        backgroundColor: chartBgColor,
+        borderColor: chartBorderColor,
+        textStyle: { color: '#F0F6FC' }
+    },
+    legend: {
+        orient: 'vertical',
+        left: 'left',
+        textStyle: { color: chartTextColor }
+    },
+    series: [{
+        name: 'Risk Level',
+        type: 'pie',
+        radius: ['40%', '70%'],
+        avoidLabelOverlap: false,
+        itemStyle: {
+            borderRadius: 8,
+            borderColor: '#161B22',
+            borderWidth: 2
+        },
+        label: { show: false },
+        emphasis: {
+            label: { show: true, fontSize: 14, fontWeight: 'bold', color: '#F0F6FC' }
+        },
+        data: riskData
+    }]
+});
+
+// Top Hosts Bar Chart
+var hostsChart = echarts.init(document.getElementById('hosts-chart'));
+var hostIps = [{% for item in host_data[:10] %}'{{ item.host.ip }}'{% if not loop.last %},{% endif %}{% endfor %}];
+var riskScores = [{% for item in host_data[:10] %}{{ item.risk.risk_score if item.risk else 0 }}{% if not loop.last %},{% endif %}{% endfor %}];
+
+// Check if we have any hosts
+if (hostIps.length === 0) {
+    document.getElementById('hosts-chart').innerHTML = '<div class="text-center text-muted py-5"><i class="bi bi-inbox"></i> No hosts discovered</div>';
+} else {
+    hostsChart.setOption({
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: { type: 'shadow' },
+            backgroundColor: chartBgColor,
+            borderColor: chartBorderColor,
+            textStyle: { color: '#F0F6FC' },
+            formatter: function(params) {
+                var score = params[0].value;
+                return params[0].name + '<br/>Risk Score: <strong>' + score.toFixed(1) + '</strong>';
+            }
+        },
+        grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+        xAxis: {
+            type: 'category',
+            data: hostIps,
+            axisLabel: { rotate: 45, color: chartMutedColor, fontSize: 10 },
+            axisLine: { lineStyle: { color: chartBorderColor } }
+        },
+        yAxis: {
+            type: 'value',
+            name: 'Risk Score',
+            nameTextStyle: { color: chartTextColor },
+            max: 100,
+            min: 0,
+            axisLabel: { color: chartMutedColor },
+            axisLine: { lineStyle: { color: chartBorderColor } },
+            splitLine: { lineStyle: { color: 'rgba(48, 54, 61, 0.5)' } }
+        },
+        series: [{
+            name: 'Risk Score',
+            type: 'bar',
+            barWidth: '60%',
+            data: riskScores.map(function(score) {
+                var color;
+                if (score >= 70) color = new echarts.graphic.LinearGradient(0, 0, 0, 1, [{offset: 0, color: colorCritical}, {offset: 1, color: '#E05555'}]);
+                else if (score >= 40) color = new echarts.graphic.LinearGradient(0, 0, 0, 1, [{offset: 0, color: colorHigh}, {offset: 1, color: '#E09040'}]);
+                else if (score >= 20) color = new echarts.graphic.LinearGradient(0, 0, 0, 1, [{offset: 0, color: colorMedium}, {offset: 1, color: '#E0C030'}]);
+                else if (score > 0) color = new echarts.graphic.LinearGradient(0, 0, 0, 1, [{offset: 0, color: colorLow}, {offset: 1, color: '#50C070'}]);
+                else color = new echarts.graphic.LinearGradient(0, 0, 0, 1, [{offset: 0, color: colorInfo}, {offset: 1, color: '#4090E0'}]);
+                // Show minimum bar height for zero scores so hosts are visible
+                var displayValue = score === 0 ? 3 : score;
+                return { value: displayValue, realValue: score, itemStyle: { color: color, borderRadius: [4, 4, 0, 0] } };
+            }),
+            label: {
+                show: true,
+                position: 'top',
+                formatter: function(params) {
+                    var realScore = riskScores[params.dataIndex];
+                    return realScore.toFixed(1);
+                },
+                color: chartTextColor,
+                fontSize: 10
+            }
+        }]
+    });
+}
+
+window.addEventListener('resize', function() {
+    riskChart.resize();
+    hostsChart.resize();
+});
+
+// Load Remediation Recommendations
+fetch('/api/scans/{{ scan.id }}/remediation')
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('remediation-loading').style.display = 'none';
+        document.getElementById('remediation-content').style.display = 'block';
+
+        document.getElementById('rec-critical').textContent = data.critical_count || 0;
+        document.getElementById('rec-high').textContent = data.high_count || 0;
+        document.getElementById('rec-medium').textContent = (data.by_priority.medium || []).length;
+        document.getElementById('rec-low').textContent = (data.by_priority.low || []).length;
+
+        var listHtml = '';
+        var priorities = ['critical', 'high', 'medium', 'low'];
+        var badgeClasses = {critical: 'bg-danger', high: 'bg-warning', medium: 'bg-info', low: 'bg-secondary'};
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        priorities.forEach(function(priority) {
+            var recs = data.by_priority[priority] || [];
+            recs.forEach(function(rec) {
+                listHtml += '<div class="card mb-2" style="background: rgba(22, 27, 34, 0.6); border-color: #30363D;">';
+                listHtml += '<div class="card-body py-2">';
+                listHtml += '<div class="d-flex align-items-center mb-1">';
+                listHtml += '<span class="badge ' + badgeClasses[priority] + ' me-2">' + priority.toUpperCase() + '</span>';
+                listHtml += '<strong>' + escapeHtml(rec.title) + '</strong>';
+                listHtml += '</div>';
+                listHtml += '<p class="text-muted mb-1 small">' + escapeHtml(rec.description) + '</p>';
+                listHtml += '<p class="mb-0"><i class="bi bi-wrench me-1"></i>' + escapeHtml(rec.action) + '</p>';
+                if (rec.reference) {
+                    listHtml += '<a href="' + escapeHtml(rec.reference) + '" target="_blank" rel="noopener noreferrer" class="small text-info"><i class="bi bi-link-45deg"></i>Reference</a>';
+                }
+                listHtml += '</div></div>';
+            });
+        });
+
+        document.getElementById('remediation-list').innerHTML = listHtml || '<p class="text-muted text-center">暂无修复建议</p>';
+    })
+    .catch(function(err) {
+        document.getElementById('remediation-loading').innerHTML = '<p class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>加载失败</p>';
+        console.error('Remediation load error:', err);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,144 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv/
+.conda/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# Testing
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+pytestdebug.log
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pytype/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+data/scanner.db
+data/*.db
+
+# NVD Cache
+data/nvd_cache/
+data/nvd_feeds/
+*.json.gz
+
+# Reports (generated)
+data/reports/
+reports/
+*.report.html
+*.report.pdf
+
+# Logs
+*.log
+logs/
+log/
+
+# Environment & Secrets
+.env
+.env.*
+*.local
+secrets/
+credentials/
+*.pem
+*.key
+api_keys.txt
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rej
+*~
+
+# Distribution
+*.tar.gz
+*.zip
+*.rar
+
+# Pip install artifacts
+=*
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Demo environment
+demo/*.log
+demo/docker-data/
+
+# Flask
+instance/
+.webassets-cache
+
+# Profiling
+*.prof
+*.lprof
+
+# Documentation build
+docs/_build/
+site/
+
+# Editor backup files
+\#*\#
+.\#*
+
+# Package lock files (keep requirements.txt)
+Pipfile.lock
+poetry.lock

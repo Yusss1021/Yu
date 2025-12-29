@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Scan Comparison - {{ i18n.title }}{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h2><i class="bi bi-arrow-left-right me-2"></i>Scan Comparison</h2>
+    <p class="text-muted">Comparing Scan #{{ scan_old.id }} vs Scan #{{ scan_new.id }}</p>
+</div>
+
+<!-- Comparison Summary -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="summary-card {{ 'card-critical' if diff.risk_delta > 0 else 'card-info' if diff.risk_delta < 0 else '' }}">
+            <h3>{{ '%+.1f'|format(diff.risk_delta) }}</h3>
+            <small>Risk Score Change</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="summary-card card-info">
+            <h3>+{{ diff.hosts_added|length }}</h3>
+            <small>New Hosts</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="summary-card card-warning">
+            <h3>-{{ diff.hosts_removed|length }}</h3>
+            <small>Removed Hosts</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="summary-card card-high">
+            <h3>{{ diff.vulns_added|length }}</h3>
+            <small>New Vulnerabilities</small>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Removed Hosts -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header" style="border-left: 3px solid var(--accent-danger);">
+                <h5><i class="bi bi-dash-circle me-2 text-danger"></i>Removed Hosts ({{ diff.hosts_removed|length }})</h5>
+            </div>
+            <div class="card-body">
+                {% if diff.hosts_removed %}
+                <div class="list-group list-group-flush">
+                    {% for host in diff.hosts_removed %}
+                    <div class="list-group-item bg-transparent border-0" style="border-left: 2px solid var(--accent-danger) !important;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-hdd-network me-2"></i>
+                                <strong>{{ host.ip }}</strong>
+                                <span class="text-muted ms-2">{{ host.hostname or '' }}</span>
+                            </div>
+                            <span class="badge bg-secondary">Offline</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center my-3"><i class="bi bi-check-circle me-1"></i>No hosts removed</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- New Hosts -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header" style="border-left: 3px solid var(--accent-success);">
+                <h5><i class="bi bi-plus-circle me-2 text-success"></i>New Hosts ({{ diff.hosts_added|length }})</h5>
+            </div>
+            <div class="card-body">
+                {% if diff.hosts_added %}
+                <div class="list-group list-group-flush">
+                    {% for host in diff.hosts_added %}
+                    <div class="list-group-item bg-transparent border-0" style="border-left: 2px solid var(--accent-success) !important;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-hdd-network me-2"></i>
+                                <strong>{{ host.ip }}</strong>
+                                <span class="text-muted ms-2">{{ host.hostname or '' }}</span>
+                            </div>
+                            <span class="badge bg-success">New</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center my-3"><i class="bi bi-info-circle me-1"></i>No new hosts found</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Vulnerability Changes -->
+<div class="row g-4 mt-2">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header" style="border-left: 3px solid var(--severity-high);">
+                <h5><i class="bi bi-bug me-2" style="color: var(--severity-high);"></i>New Vulnerabilities ({{ diff.vulns_added|length }})</h5>
+            </div>
+            <div class="card-body">
+                {% if diff.vulns_added %}
+                <div class="accordion" id="vulnNewAccordion">
+                    {% for vuln in diff.vulns_added[:20] %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#newVuln{{ loop.index }}">
+                                {% if vuln.severity %}
+                                    {% set sev = vuln.severity.value %}
+                                    <span class="badge {% if sev == 'CRITICAL' %}bg-danger{% elif sev == 'HIGH' %}bg-warning{% else %}bg-info{% endif %} me-2">{{ sev }}</span>
+                                {% endif %}
+                                {{ vuln.cve_id }}
+                            </button>
+                        </h2>
+                        <div id="newVuln{{ loop.index }}" class="accordion-collapse collapse">
+                            <div class="accordion-body small">
+                                <p class="mb-1"><strong>CVSS:</strong> {{ vuln.cvss_base or 'N/A' }}</p>
+                                <p class="mb-0 text-muted">{{ vuln.description[:200] + '...' if vuln.description and vuln.description|length > 200 else vuln.description or 'No description' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center my-3"><i class="bi bi-shield-check me-1"></i>No new vulnerabilities</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header" style="border-left: 3px solid var(--accent-success);">
+                <h5><i class="bi bi-patch-check me-2 text-success"></i>Fixed Vulnerabilities ({{ diff.vulns_fixed|length }})</h5>
+            </div>
+            <div class="card-body">
+                {% if diff.vulns_fixed %}
+                <div class="list-group list-group-flush">
+                    {% for vuln in diff.vulns_fixed[:20] %}
+                    <div class="list-group-item bg-transparent border-0 py-2">
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        <span class="text-decoration-line-through text-muted">{{ vuln.cve_id }}</span>
+                        <span class="badge bg-success ms-2">Fixed</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center my-3"><i class="bi bi-info-circle me-1"></i>No vulnerabilities fixed</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Back Button -->
+<div class="mt-4">
+    <a href="{{ url_for('views.history') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Back to History
+    </a>
+</div>
+{% endblock %}

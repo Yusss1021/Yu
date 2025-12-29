@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}网络拓扑 - {{ i18n.title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="mb-0"><i class="bi bi-diagram-3-fill me-2"></i>网络拓扑 #{{ scan.id }}</h3>
+        <small class="text-muted">{{ scan.target_range }}</small>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <div class="btn-group" role="group">
+            <button class="btn btn-sm btn-outline-secondary" id="zoom-out"><i class="bi bi-dash-lg"></i></button>
+            <button class="btn btn-sm btn-outline-secondary" id="zoom-reset"><i class="bi bi-arrow-counterclockwise"></i></button>
+            <button class="btn btn-sm btn-outline-secondary" id="zoom-in"><i class="bi bi-plus-lg"></i></button>
+        </div>
+        <a href="{{ url_for('views.scan_detail', scan_id=scan.id) }}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-arrow-left me-1"></i>返回详情
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0 position-relative">
+        <div id="loading" class="position-absolute top-50 start-50 translate-middle text-muted">
+            <div class="spinner-border text-primary me-2" role="status"></div>加载中...
+        </div>
+        <div id="topology-graph" style="height: 75vh; width: 100%;"></div>
+
+        <!-- Legend -->
+        <div class="position-absolute bottom-0 end-0 p-3 m-3 rounded" style="background: rgba(22, 27, 34, 0.95); border: 1px solid #30363D;">
+            <h6 class="mb-2 text-light small text-uppercase fw-bold">风险等级</h6>
+            <div class="d-flex align-items-center mb-1"><span class="d-inline-block rounded-circle me-2" style="width: 10px; height: 10px; background-color: #FF6B6B;"></span><span class="small text-muted">Critical</span></div>
+            <div class="d-flex align-items-center mb-1"><span class="d-inline-block rounded-circle me-2" style="width: 10px; height: 10px; background-color: #FFA94D;"></span><span class="small text-muted">High</span></div>
+            <div class="d-flex align-items-center mb-1"><span class="d-inline-block rounded-circle me-2" style="width: 10px; height: 10px; background-color: #FFD93D;"></span><span class="small text-muted">Medium</span></div>
+            <div class="d-flex align-items-center mb-1"><span class="d-inline-block rounded-circle me-2" style="width: 10px; height: 10px; background-color: #69DB7C;"></span><span class="small text-muted">Low</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- Node Details Modal -->
+<div class="modal fade" id="nodeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title"><i class="bi bi-hdd-network me-2"></i><span id="modal-hostname"></span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <code id="modal-ip" class="fs-5 text-info"></code>
+                    <span id="modal-os" class="badge bg-secondary"></span>
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-4">
+                        <div class="p-2 border border-secondary rounded text-center">
+                            <div class="text-muted small">风险评分</div>
+                            <div id="modal-score" class="fw-bold fs-4"></div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 border border-secondary rounded text-center">
+                            <div class="text-muted small">漏洞数</div>
+                            <div id="modal-vulns" class="fw-bold fs-4 text-light"></div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 border border-secondary rounded text-center">
+                            <div class="text-muted small">服务数</div>
+                            <div id="modal-services" class="fw-bold fs-4 text-light"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <span class="text-muted small">风险等级: </span>
+                    <span id="modal-level" class="badge"></span>
+                </div>
+                <div id="modal-mac" class="text-muted small"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const scanId = {{ scan.id | tojson }};
+const chartDom = document.getElementById('topology-graph');
+const myChart = echarts.init(chartDom);
+const loadingEl = document.getElementById('loading');
+
+// Fetch topology data
+fetch('/api/scans/' + scanId + '/topology')
+    .then(res => res.json())
+    .then(option => {
+        loadingEl.style.display = 'none';
+        myChart.setOption(option);
+    })
+    .catch(err => {
+        console.error('Failed to load topology:', err);
+        loadingEl.style.display = 'none';
+        chartDom.innerHTML = '<div class="text-center text-muted py-5">加载拓扑数据失败</div>';
+    });
+
+// Node click handler
+const nodeModal = new bootstrap.Modal(document.getElementById('nodeModal'));
+
+myChart.on('click', function(params) {
+    if (params.dataType === 'node' && params.data.details) {
+        const d = params.data.details;
+        document.getElementById('modal-ip').textContent = d.ip;
+        document.getElementById('modal-hostname').textContent = d.hostname;
+        document.getElementById('modal-os').textContent = d.os;
+
+        const scoreEl = document.getElementById('modal-score');
+        scoreEl.textContent = d.risk_score.toFixed(1);
+
+        const colors = { 'Critical': '#FF6B6B', 'High': '#FFA94D', 'Medium': '#FFD93D', 'Low': '#69DB7C', 'Info': '#58A6FF' };
+        scoreEl.style.color = colors[d.risk_level] || '#69DB7C';
+
+        document.getElementById('modal-vulns').textContent = d.vuln_count;
+        document.getElementById('modal-services').textContent = d.service_count;
+
+        const levelEl = document.getElementById('modal-level');
+        levelEl.textContent = d.risk_level;
+        levelEl.className = 'badge bg-' + ({'Critical': 'danger', 'High': 'warning', 'Medium': 'info', 'Low': 'success'}[d.risk_level] || 'secondary');
+
+        document.getElementById('modal-mac').textContent = d.mac ? 'MAC: ' + d.mac : '';
+
+        nodeModal.show();
+    }
+});
+
+// Zoom controls
+let currentZoom = 1;
+document.getElementById('zoom-in').addEventListener('click', () => {
+    currentZoom = Math.min(5, currentZoom + 0.3);
+    myChart.setOption({ series: [{ zoom: currentZoom }] });
+});
+document.getElementById('zoom-out').addEventListener('click', () => {
+    currentZoom = Math.max(0.3, currentZoom - 0.3);
+    myChart.setOption({ series: [{ zoom: currentZoom }] });
+});
+document.getElementById('zoom-reset').addEventListener('click', () => {
+    currentZoom = 1;
+    myChart.setOption({ series: [{ zoom: 1, center: null }] });
+});
+
+window.addEventListener('resize', () => myChart.resize());
+</script>
+{% endblock %}

@@ -1,0 +1,36 @@
+# Core - Network Scanning
+scapy>=2.5.0
+python-nmap>=0.7.1
+
+# HTTP Client
+requests>=2.31.0
+
+# Web Framework
+flask>=3.0.0
+flask-wtf>=1.2.0
+jinja2>=3.1.0
+
+# CLI Framework
+click>=8.1.0
+rich>=13.0.0
+
+# Utilities
+python-dateutil>=2.8.0
+
+# NVD Data Feeds
+ijson>=3.2.0
+
+# PDF Report Generation
+weasyprint>=60.0
+matplotlib>=3.7.0
+
+# Task Scheduling
+apscheduler>=3.10.0
+
+# Active Verification (optional)
+# paramiko>=3.4.0    # SSH weak password detection
+# pymysql>=1.1.0     # MySQL weak password detection
+
+# Development & Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0

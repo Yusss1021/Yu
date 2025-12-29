@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}{{ i18n.new_scan }} - {{ i18n.title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header text-center">
+                <h4><i class="bi bi-radar me-2"></i>{{ i18n.new_scan }}</h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('views.new_scan') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="bi bi-crosshair me-1"></i>
+                            {{ i18n.scan_target }} <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" name="target" class="form-control form-control-lg"
+                               placeholder="192.168.1.0/24" required>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Supports: Single IP, CIDR notation (192.168.1.0/24), or IP range (192.168.1.1-254)
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="bi bi-broadcast me-1"></i>
+                                {{ i18n.discovery_method }}
+                            </label>
+                            <select name="method" class="form-select">
+                                <option value="icmp">🔵 ICMP Ping (Fast)</option>
+                                <option value="arp">🟢 ARP Scan (LAN Only)</option>
+                                <option value="syn">🟡 TCP SYN (Accurate)</option>
+                                <option value="all">🔴 All Methods (Thorough)</option>
+                            </select>
+                            <div class="form-text">Choose based on network type</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="bi bi-diagram-3 me-1"></i>
+                                {{ i18n.port_range }}
+                            </label>
+                            <input type="text" name="ports" class="form-control" value="1-1024">
+                            <div class="form-text">Used for TCP SYN scanning</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="verify" id="verify">
+                            <label class="form-check-label" for="verify">
+                                <i class="bi bi-shield-check me-1"></i>
+                                启用主动漏洞验证
+                            </label>
+                            <div class="form-text">包括弱密码检测、SSL/TLS审计、NSE脚本验证</div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info d-flex align-items-start mb-4" role="alert">
+                        <i class="bi bi-lightbulb-fill me-2 mt-1"></i>
+                        <div>
+                            <strong>Tip:</strong> For best results on local networks, use "ARP" or "All Methods".
+                            ICMP may be blocked by firewalls.
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-play-circle-fill me-2"></i>{{ i18n.start_scan }}
+                        </button>
+                        <a href="{{ url_for('views.dashboard') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Method Info Cards -->
+        <div class="row g-3 mt-4">
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="text-primary"><i class="bi bi-broadcast me-2"></i>ICMP Ping</h6>
+                        <small class="text-muted">Fast host discovery using ICMP Echo Request. May be blocked by firewalls.</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="text-success"><i class="bi bi-ethernet me-2"></i>ARP Scan</h6>
+                        <small class="text-muted">Reliable for local networks. Discovers MAC addresses. LAN only.</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="text-warning"><i class="bi bi-plug me-2"></i>TCP SYN</h6>
+                        <small class="text-muted">Port scanning with half-open connections. More accurate but slower.</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="text-danger"><i class="bi bi-layers me-2"></i>All Methods</h6>
+                        <small class="text-muted">Combines all methods for comprehensive discovery. Most thorough.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

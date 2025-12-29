@@ -1,0 +1,95 @@
+version: '3.8'
+
+# VulnScanner 演示环境 - 多主机漏洞靶场
+# 启动: docker-compose up -d
+# 停止: docker-compose down
+
+services:
+  # DVWA - Web漏洞 (SQL注入、XSS、命令注入)
+  dvwa:
+    image: vulnerables/web-dvwa
+    container_name: vuln_dvwa
+    ports:
+      - "8080:80"
+    networks:
+      vulnnet:
+        ipv4_address: 172.28.0.2
+
+  # WebGoat - OWASP教学平台
+  webgoat:
+    image: webgoat/webgoat
+    container_name: vuln_webgoat
+    ports:
+      - "8081:8080"
+      - "9090:9090"
+    networks:
+      vulnnet:
+        ipv4_address: 172.28.0.3
+
+  # Juice Shop - 现代Web应用漏洞
+  juiceshop:
+    image: bkimminich/juice-shop
+    container_name: vuln_juiceshop
+    ports:
+      - "3000:3000"
+    networks:
+      vulnnet:
+        ipv4_address: 172.28.0.4
+
+  # 易受攻击的MySQL
+  mysql:
+    image: mysql:5.6
+    container_name: vuln_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: testdb
+    ports:
+      - "3306:3306"
+    networks:
+      vulnnet:
+        ipv4_address: 172.28.0.5
+
+  # 易受攻击的Redis (无密码)
+  redis:
+    image: redis:5.0
+    container_name: vuln_redis
+    command: redis-server --protected-mode no
+    ports:
+      - "6379:6379"
+    networks:
+      vulnnet:
+        ipv4_address: 172.28.0.6
+
+  # 易受攻击的SSH (弱密码)
+  ssh:
+    image: rastasheep/ubuntu-sshd:18.04
+    container_name: vuln_ssh
+    ports:
+      - "2222:22"
+    networks:
+      vulnnet:
+        ipv4_address: 172.28.0.7
+
+  # 易受攻击的FTP
+  ftp:
+    image: stilliard/pure-ftpd
+    container_name: vuln_ftp
+    environment:
+      PUBLICHOST: localhost
+      FTP_USER_NAME: admin
+      FTP_USER_PASS: admin123
+      FTP_USER_HOME: /home/ftpuser
+    ports:
+      - "21:21"
+      - "30000-30009:30000-30009"
+    networks:
+      vulnnet:
+        ipv4_address: 172.28.0.8
+
+networks:
+  vulnnet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/24
+          gateway: 172.28.0.1
