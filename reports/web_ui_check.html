@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>内网脆弱性扫描报告</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #1c2434;
+      --muted: #60708a;
+      --high: #d63031;
+      --medium: #e17055;
+      --low: #00b894;
+      --primary: #0f4c81;
+      --border: #e3eaf4;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(circle at top right, #e8f2ff 0%, var(--bg) 42%);
+      color: var(--text);
+    }
+    .container {
+      max-width: 1200px;
+      margin: 28px auto;
+      padding: 0 16px 40px;
+    }
+    .header {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(12, 35, 64, 0.07);
+    }
+    .meta {
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .card .value { font-size: 28px; font-weight: 700; }
+    .high { color: var(--high); }
+    .medium { color: var(--medium); }
+    .low { color: var(--low); }
+    .grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th, td {
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      padding: 8px 6px;
+      vertical-align: top;
+    }
+    th { color: var(--muted); font-weight: 600; }
+    @media (max-width: 980px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="container">
+    <section class="header">
+      <h2>面向企业内部网络的脆弱性扫描与风险评估报告</h2>
+      <div class="meta">
+        <div>生成时间：2026-02-24 18:25:00</div>
+        <div>目标网段：127.0.0.1/32</div>
+        <div>发现方法：syn</div>
+        <div>扫描端口：1,2,3</div>
+        <div>风险模型：Risk = 0.45*CVSS + 0.20*AssetCriticality + 0.15*PortExposure + 0.10*ExploitMaturity + 0.10*MatchConfidence</div>
+      </div>
+      <div class="cards">
+        <div class="card"><div>主机数量</div><div class="value">0</div></div>
+        <div class="card"><div>服务数量</div><div class="value">0</div></div>
+        <div class="card"><div>风险总数</div><div class="value">0</div></div>
+        <div class="card"><div>高风险</div><div class="value high">0</div></div>
+        <div class="card"><div>中风险</div><div class="value medium">0</div></div>
+        <div class="card"><div>低风险</div><div class="value low">0</div></div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <h3>Top 风险条目</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>主机</th>
+              <th>端口</th>
+              <th>服务</th>
+              <th>CVE</th>
+              <th>CVSS</th>
+              <th>资产重要性</th>
+              <th>可利用性</th>
+              <th>匹配置信度</th>
+              <th>风险分</th>
+              <th>等级</th>
+              <th>修复建议</th>
+            </tr>
+          </thead>
+          <tbody>
+            
+          </tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <h3>风险等级分布</h3>
+        <canvas id="riskPie" height="250"></canvas>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:16px;">
+      <h3>资产发现结果</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>IP</th>
+            <th>MAC</th>
+            <th>发现方式</th>
+            <th>开放端口</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+        </tbody>
+      </table>
+    </section>
+  </div>
+  <script>
+    const chartData = {"labels": ["HIGH", "MEDIUM", "LOW"], "data": [0, 0, 0]};
+    new Chart(document.getElementById('riskPie'), {
+      type: 'doughnut',
+      data: {
+        labels: chartData.labels,
+        datasets: [{
+          data: chartData.data,
+          backgroundColor: ['#d63031', '#e17055', '#00b894'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        plugins: {
+          legend: { position: 'bottom' }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+  <div class="headline">
+    <h1>扫描详情 #{% print scan.id %}</h1>
+    <div class="subtitle">
+      目标：{% print scan.target %} | 方法：{% print scan.methods %} | 端口：{% print scan.ports %}
+    </div>
+  </div>
+  <div class="grid stats">
+    <div class="card"><div class="metric-label">扫描时长(s)</div><div class="metric-value">{% print scan.duration_seconds %}</div></div>
+    <div class="card"><div class="metric-label">主机数</div><div class="metric-value">{% print scan.total_hosts %}</div></div>
+    <div class="card"><div class="metric-label">服务数</div><div class="metric-value">{% print scan.total_services %}</div></div>
+    <div class="card"><div class="metric-label">风险数</div><div class="metric-value">{% print scan.total_risks %}</div></div>
+  </div>
+  <div class="actions">
+    <a class="btn secondary" href="{{ url_for('view_report', scan_id=scan.id) }}" target="_blank">打开HTML报告</a>
+    <a class="btn secondary" href="{{ url_for('dashboard') }}">返回仪表盘</a>
+  </div>
+</section>
+
+<section class="section split">
+  <article class="card">
+    <div class="headline">
+      <h2>资产发现结果</h2>
+      <div class="hint">共 {% print assets|length %} 条</div>
+    </div>
+    <table>
+      <thead><tr><th>IP</th><th>MAC</th><th>发现方式</th><th>开放端口</th></tr></thead>
+      <tbody>
+        {% for item in assets %}
+        <tr>
+          <td>{% print item.ip %}</td>
+          <td>{% print item.mac or "-" %}</td>
+          <td>{% print item.discovered_by %}</td>
+          <td>{% print item.open_ports or "-" %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </article>
+
+  <article class="card">
+    <div class="headline">
+      <h2>服务识别结果</h2>
+      <div class="hint">共 {% print services|length %} 条</div>
+    </div>
+    <table>
+      <thead><tr><th>主机</th><th>端口</th><th>协议</th><th>服务</th><th>产品版本</th><th>指纹方法</th><th>指纹置信度</th></tr></thead>
+      <tbody>
+        {% for item in services %}
+        <tr>
+          <td>{% print item.host_ip %}</td>
+          <td>{% print item.port %}</td>
+          <td>{% print item.protocol %}</td>
+          <td>{% print item.service_name %}</td>
+          <td>{% print item.product %} {% print item.version %}</td>
+          <td>{% print item.fingerprint_method|default("-", true) %}</td>
+          <td>{% print item.fingerprint_confidence|default(0.0, true) %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </article>
+</section>
+
+<section class="section">
+  <article class="card">
+    <div class="headline">
+      <h2>漏洞匹配与风险评估结果</h2>
+      <div class="hint">共 {% print vulnerabilities|length %} 条</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>主机</th>
+          <th>端口</th>
+          <th>CVE</th>
+          <th>CVSS</th>
+          <th>资产重要性</th>
+          <th>可利用性</th>
+          <th>匹配置信度</th>
+          <th>置信度等级</th>
+          <th>确认建议</th>
+          <th>手动确认</th>
+          <th>原因</th>
+          <th>风险分</th>
+          <th>等级</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in vulnerabilities %}
+        <tr>
+          <td>{% print item.host_ip %}</td>
+          <td>{% print item.port %}</td>
+          <td>{% print item.cve_id %}</td>
+          <td>{% print item.cvss %}</td>
+          <td>{% print item.asset_criticality %}</td>
+          <td>{% print item.exploit_maturity %}</td>
+          <td>{% print item.match_confidence %}</td>
+          <td>{% print item.confidence_tier|default("-", true) %}</td>
+          <td>
+            {% set tier = (item.confidence_tier|default("", true))|upper %}
+            {% if tier == "LOW" %}
+              必须手动确认
+            {% elif tier == "HIGH" %}
+              无需手动确认
+            {% else %}
+              建议手动确认
+            {% endif %}
+          </td>
+          <td>{% if item.manual_confirmation_needed|default(false) %}需要手动确认漏洞{% else %}-{% endif %}</td>
+          <td>{% print item.confidence_reason|default("-", true) %}</td>
+          <td>{% print item.risk_score %}</td>
+          <td>{% print item.risk_level %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </article>
+</section>
+{% endblock %}

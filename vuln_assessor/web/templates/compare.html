@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block content %}
+{% macro dash(v) -%}
+  {%- if v is undefined or v is none -%}-{%- else -%}{{ v }}{%- endif -%}
+{%- endmacro %}
+{% macro yn(v) -%}
+  {%- if v is undefined or v is none -%}-{%- elif v in [1, true, '1', 'true', 'True', 'yes', 'Yes', '是'] -%}是{%- else -%}否{%- endif -%}
+{%- endmacro %}
+
+<section class="section">
+  <div class="headline">
+    <h1>服务识别与漏洞匹配结果对比</h1>
+    <div class="subtitle">按两次扫描结果做差异分析：新增 / 消失 / 持续 / 风险变化</div>
+  </div>
+
+  <article class="card">
+    <div class="headline"><h2>注意事项</h2><div class="hint">对比结果仅用于辅助分析</div></div>
+    <ul class="hint" style="margin:0; padding-left: 1.1em;">
+      <li><b>权限</b>：仅对已获得授权的资产/目标执行扫描与对比，避免对生产环境造成影响。</li>
+      <li><b>准确性</b>：识别/匹配结果受指纹、端口暴露、网络环境等影响，建议结合人工复核与多源证据。</li>
+      <li><b>合规</b>：请遵守公司制度与法律法规，妥善保存与使用扫描数据，避免泄露敏感信息。</li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <form method="get" action="{{ url_for('compare_page') }}">
+      <div class="form-grid">
+        <div class="field">
+          <label>基线扫描ID</label>
+          <select name="base" required>
+            <option value="">请选择</option>
+            {% for row in scans %}
+              <option value="{{ row.id }}" selected="{% if row.id == base_id %}selected{% endif %}">
+                #{{ row.id }} {{ row.started_at }} {{ row.target }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label>新扫描ID</label>
+          <select name="new" required>
+            <option value="">请选择</option>
+            {% for row in scans %}
+              <option value="{{ row.id }}" selected="{% if row.id == new_id %}selected{% endif %}">
+                #{{ row.id }} {{ row.started_at }} {{ row.target }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn primary" type="submit">执行对比</button>
+        <a class="btn secondary" href="{{ url_for('dashboard') }}">返回仪表盘</a>
+      </div>
+    </form>
+  </article>
+</section>
+
+{% if comparison %}
+<section class="section split">
+  <article class="card">
+    <div class="headline"><h2>服务识别差异</h2><div class="hint">模块级对比</div></div>
+    <div class="hint">新增 {{ comparison.service_new|length }} / 消失 {{ comparison.service_resolved|length }} / 持续 {{ comparison.service_persisted|length }}</div>
+    <table>
+      <thead><tr><th>变化</th><th>主机</th><th>端口</th><th>协议</th><th>服务</th><th>产品版本</th></tr></thead>
+      <tbody>
+        {% for item in comparison.service_new %}
+        <tr><td>新增</td><td>{{ item.host_ip }}</td><td>{{ item.port }}</td><td>{{ item.protocol }}</td><td>{{ item.service_name }}</td><td>{{ item.product }} {{ item.version }}</td></tr>
+        {% endfor %}
+        {% for item in comparison.service_resolved %}
+        <tr><td>消失</td><td>{{ item.host_ip }}</td><td>{{ item.port }}</td><td>{{ item.protocol }}</td><td>{{ item.service_name }}</td><td>{{ item.product }} {{ item.version }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </article>
+
+  <article class="card">
+    <div class="headline"><h2>漏洞匹配差异</h2><div class="hint">模块级对比</div></div>
+    <div class="hint">新增 {{ comparison.vulnerability_new|length }} / 修复 {{ comparison.vulnerability_resolved|length }} / 持续 {{ comparison.vulnerability_persisted|length }}</div>
+    <table>
+      <thead><tr><th>变化</th><th>主机</th><th>端口</th><th>CVE</th><th>风险分</th><th>等级</th></tr></thead>
+      <tbody>
+        {% for item in comparison.vulnerability_new %}
+        <tr><td>新增</td><td>{{ item.host_ip }}</td><td>{{ item.port }}</td><td>{{ item.cve_id }}</td><td>{{ item.risk_score }}</td><td>{{ item.risk_level }}</td></tr>
+        {% endfor %}
+        {% for item in comparison.vulnerability_resolved %}
+        <tr><td>修复</td><td>{{ item.host_ip }}</td><td>{{ item.port }}</td><td>{{ item.cve_id }}</td><td>{{ item.risk_score }}</td><td>{{ item.risk_level }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </article>
+</section>
+
+<section class="section">
+  <article class="card">
+    <div class="headline">
+      <h2>持续漏洞风险变化</h2>
+      <div class="hint">同一漏洞在两次扫描中的量化变化</div>
+    </div>
+    <div class="hint">变化条目：{{ comparison.vulnerability_changed|length }}</div>
+    <table>
+      <thead>
+        <tr>
+          <th>主机</th><th>端口</th><th>CVE</th>
+          <th>基线分</th><th>新分</th>
+          <th>基线等级</th><th>新等级</th>
+          <th>资产重要性(基线->新)</th>
+          <th>置信度(基线->新)</th>
+          <th>置信度等级(基线->新)</th>
+          <th>手动确认(基线->新)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in comparison.vulnerability_changed %}
+        <tr>
+          <td>{{ item.host_ip }}</td>
+          <td>{{ item.port }}</td>
+          <td>{{ item.cve_id }}</td>
+          <td>{{ item.base_risk_score }}</td>
+          <td>{{ item.new_risk_score }}</td>
+          <td>{{ item.base_risk_level }}</td>
+          <td>{{ item.new_risk_level }}</td>
+          <td>{{ dash(item.base_asset_criticality) }} -> {{ dash(item.new_asset_criticality) }}</td>
+          <td>{{ dash(item.base_match_confidence) }} -> {{ dash(item.new_match_confidence) }}</td>
+          <td>{{ dash(item.base_confidence_tier) }} -> {{ dash(item.new_confidence_tier) }}</td>
+          <td>{{ yn(item.base_manual_confirmation_needed) }} -> {{ yn(item.new_manual_confirmation_needed) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </article>
+</section>
+{% endif %}
+{% endblock %}

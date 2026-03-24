@@ -1,0 +1,21 @@
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 60410)
+Traceback (most recent call last):
+  File "/usr/lib/python3.13/socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "/home/forgiven/work/Yu_workspace/intra_vuln_assessor/lab/mock_redis.py", line 18, in handle
+    command = self._read_command()
+  File "/home/forgiven/work/Yu_workspace/intra_vuln_assessor/lab/mock_redis.py", line 36, in _read_command
+    first_line = self.rfile.readline(4096)
+  File "/usr/lib/python3.13/socket.py", line 719, in readinto
+    return self._sock.recv_into(b)
+           ~~~~~~~~~~~~~~~~~~~~^^^
+ConnectionResetError: [Errno 104] Connection reset by peer
+----------------------------------------

@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+  <div class="headline">
+    <h1>扫描控制台</h1>
+    <div class="subtitle">支持后台并发任务，最大并发数：{{ stats.max_concurrent }}</div>
+  </div>
+  <div class="grid stats">
+    <div class="card">
+      <div class="metric-label">总扫描次数</div>
+      <div class="metric-value">{{ stats.total_scans }}</div>
+    </div>
+    <div class="card">
+      <div class="metric-label">累计风险数</div>
+      <div class="metric-value">{{ stats.total_risks }}</div>
+    </div>
+    <div class="card">
+      <div class="metric-label">运行中任务</div>
+      <div class="metric-value">{{ stats.running_tasks }}</div>
+    </div>
+    <div class="card">
+      <div class="metric-label">需要手动确认</div>
+      <div class="metric-value">{{ stats.manual_confirm_needed_latest or 0 }}</div>
+    </div>
+    <div class="card">
+      <div class="metric-label">最近扫描ID</div>
+      <div class="metric-value">{{ stats.latest_scan_id or "-" }}</div>
+    </div>
+  </div>
+</section>
+
+<section class="section grid main">
+  <article class="card">
+    <div class="headline">
+      <h2>提交扫描任务</h2>
+      <div class="hint">扫描任务异步执行，可同时提交多条任务</div>
+    </div>
+    <form action="{{ url_for('submit_scan') }}" method="post">
+      <div class="form-grid">
+        <div class="field">
+          <label>目标网段</label>
+          <input type="text" name="target" value="127.0.0.1/32" required>
+        </div>
+        <div class="field">
+          <label>扫描方法</label>
+          <input type="text" name="methods" value="icmp,syn" placeholder="icmp,arp,syn">
+        </div>
+        <div class="field">
+          <label>端口范围</label>
+          <input type="text" name="ports" value="2222,6379" placeholder="22,80,443 或 1-1024">
+        </div>
+        <div class="field">
+          <label>报告名称</label>
+          <input type="text" name="scan_name" placeholder="round_web_01">
+        </div>
+        <div class="field">
+          <label>输出目录</label>
+          <input type="text" name="output_dir" placeholder="reports">
+        </div>
+        <div class="field">
+          <label>资产画像文件(可选)</label>
+          <input type="text" name="asset_profile" placeholder="docs/asset_profile.example.json">
+        </div>
+      </div>
+      <div class="actions">
+        <button type="submit" class="btn primary">提交后台扫描</button>
+        <a class="btn secondary" href="{{ url_for('compare_page') }}">前往结果对比</a>
+      </div>
+    </form>
+  </article>
+
+  <article class="card">
+    <div class="headline">
+      <h2>注意事项</h2>
+      <div class="hint">提交任务前请确认以下事项</div>
+    </div>
+    <ul>
+      <li><strong>权限</strong>：仅对已获明确授权的网段/资产执行扫描，避免影响无关系统。</li>
+      <li><strong>准确性</strong>：结果可能受网络环境、指纹识别与版本差异影响，请结合证据进行人工复核。</li>
+      <li><strong>合规</strong>：遵守公司安全流程与相关法律法规，禁止用于任何未授权的测试或渗透。</li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="headline">
+      <h2>任务队列</h2>
+      <div class="hint">状态自动刷新</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>任务ID</th>
+          <th>目标</th>
+          <th>状态</th>
+          <th>消息</th>
+          <th>扫描ID</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for task in tasks %}
+        <tr>
+          <td class="mono">{{ task.task_id }}</td>
+          <td>{{ task.target }}</td>
+          <td><span class="badge {{ task.status }}">{{ task.status }}</span></td>
+          <td>{{ task.message }}</td>
+          <td>
+            {% if task.scan_id %}
+              <a href="{{ url_for('scan_detail', scan_id=task.scan_id) }}">{{ task.scan_id }}</a>
+            {% else %}
+              -
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </article>
+</section>
+
+<section class="section">
+  <article class="card">
+    <div class="headline">
+      <h2>历史扫描记录</h2>
+      <div class="hint">点击扫描ID查看详细资产、服务、漏洞结果</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>时间</th>
+          <th>目标</th>
+          <th>主机</th>
+          <th>服务</th>
+          <th>风险</th>
+          <th>高中低</th>
+          <th>报告</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in scans %}
+        <tr>
+          <td><a href="{{ url_for('scan_detail', scan_id=row.id) }}">{{ row.id }}</a></td>
+          <td class="mono">{{ row.started_at }}</td>
+          <td>{{ row.target }}</td>
+          <td>{{ row.total_hosts }}</td>
+          <td>{{ row.total_services }}</td>
+          <td>{{ row.total_risks }}</td>
+          <td>{{ row.high_count }}/{{ row.medium_count }}/{{ row.low_count }}</td>
+          <td><a href="{{ url_for('view_report', scan_id=row.id) }}" target="_blank">查看</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </article>
+</section>
+
+{% if has_running_task %}
+<script>
+  setTimeout(() => window.location.reload(), 4000);
+</script>
+{% endif %}
+{% endblock %}

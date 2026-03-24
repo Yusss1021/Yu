@@ -1,0 +1,2106 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>内网脆弱性扫描报告</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #1c2434;
+      --muted: #60708a;
+      --high: #d63031;
+      --medium: #e17055;
+      --low: #00b894;
+      --primary: #0f4c81;
+      --border: #e3eaf4;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(circle at top right, #e8f2ff 0%, var(--bg) 42%);
+      color: var(--text);
+    }
+    .container {
+      max-width: 1200px;
+      margin: 28px auto;
+      padding: 0 16px 40px;
+    }
+    .header {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(12, 35, 64, 0.07);
+    }
+    .meta {
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .card .value { font-size: 28px; font-weight: 700; }
+    .high { color: var(--high); }
+    .medium { color: var(--medium); }
+    .low { color: var(--low); }
+    .grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th, td {
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      padding: 8px 6px;
+      vertical-align: top;
+    }
+    th { color: var(--muted); font-weight: 600; }
+    @media (max-width: 980px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+  <script src="assets/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <section class="header">
+      <h2>面向企业内部网络的脆弱性扫描与风险评估报告</h2>
+      <div class="meta">
+        <div>生成时间：2026-02-27 16:12:32</div>
+        <div>目标网段：127.0.0.0/24</div>
+        <div>发现方法：icmp</div>
+        <div>扫描端口：1</div>
+        <div>风险模型：Risk = 0.45*CVSS + 0.20*AssetCriticality + 0.15*PortExposure + 0.10*ExploitMaturity + 0.10*MatchConfidence</div>
+        <div style="margin-top: 8px;">
+          <div style="font-weight: 600;">扫描限制与建议</div>
+          <ul style="margin: 6px 0 0 18px; padding: 0;">
+            <li>权限提示（ARP/SYN权限）</li>
+            <li>准确性提示（ICMP不通/版本缺失/手动确认）</li>
+            <li>合规提示（授权网络）</li>
+          </ul>
+        </div>
+      </div>
+      <div class="cards">
+        <div class="card"><div>主机数量</div><div class="value">254</div></div>
+        <div class="card"><div>服务数量</div><div class="value">0</div></div>
+        <div class="card"><div>风险总数</div><div class="value">0</div></div>
+        <div class="card"><div>高风险</div><div class="value high">0</div></div>
+        <div class="card"><div>中风险</div><div class="value medium">0</div></div>
+        <div class="card"><div>低风险</div><div class="value low">0</div></div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <h3>Top 风险条目</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>主机</th>
+              <th>端口</th>
+              <th>服务</th>
+              <th>CVE</th>
+              <th>CVSS</th>
+              <th>资产重要性</th>
+              <th>可利用性</th>
+              <th>匹配置信度</th>
+              <th style="width: 96px;">置信度等级</th>
+              <th style="width: 120px;">确认建议</th>
+              <th>原因</th>
+              <th>风险分</th>
+              <th>等级</th>
+              <th>修复建议</th>
+            </tr>
+          </thead>
+          <tbody>
+            
+          </tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <h3>风险等级分布</h3>
+        <canvas id="riskPie" height="250"></canvas>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:16px;">
+      <h3>资产发现结果</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>IP</th>
+            <th>MAC</th>
+            <th>发现方式</th>
+            <th>开放端口</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          <tr>
+            <td>127.0.0.1</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.2</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.3</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.4</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.5</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.6</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.7</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.8</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.9</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.10</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.11</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.12</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.13</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.14</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.15</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.16</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.17</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.18</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.19</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.20</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.21</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.22</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.23</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.24</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.25</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.26</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.27</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.28</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.29</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.30</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.31</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.32</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.33</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.34</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.35</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.36</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.37</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.38</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.39</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.40</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.41</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.42</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.43</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.44</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.45</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.46</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.47</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.48</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.49</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.50</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.51</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.52</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.53</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.54</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.55</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.56</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.57</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.58</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.59</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.60</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.61</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.62</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.63</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.64</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.65</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.66</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.67</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.68</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.69</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.70</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.71</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.72</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.73</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.74</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.75</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.76</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.77</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.78</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.79</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.80</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.81</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.82</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.83</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.84</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.85</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.86</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.87</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.88</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.89</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.90</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.91</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.92</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.93</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.94</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.95</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.96</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.97</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.98</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.99</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.100</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.101</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.102</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.103</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.104</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.105</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.106</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.107</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.108</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.109</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.110</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.111</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.112</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.113</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.114</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.115</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.116</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.117</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.118</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.119</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.120</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.121</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.122</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.123</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.124</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.125</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.126</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.127</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.128</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.129</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.130</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.131</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.132</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.133</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.134</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.135</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.136</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.137</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.138</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.139</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.140</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.141</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.142</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.143</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.144</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.145</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.146</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.147</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.148</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.149</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.150</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.151</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.152</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.153</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.154</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.155</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.156</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.157</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.158</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.159</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.160</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.161</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.162</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.163</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.164</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.165</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.166</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.167</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.168</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.169</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.170</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.171</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.172</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.173</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.174</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.175</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.176</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.177</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.178</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.179</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.180</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.181</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.182</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.183</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.184</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.185</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.186</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.187</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.188</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.189</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.190</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.191</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.192</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.193</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.194</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.195</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.196</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.197</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.198</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.199</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.200</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.201</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.202</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.203</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.204</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.205</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.206</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.207</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.208</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.209</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.210</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.211</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.212</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.213</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.214</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.215</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.216</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.217</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.218</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.219</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.220</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.221</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.222</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.223</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.224</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.225</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.226</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.227</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.228</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.229</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.230</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.231</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.232</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.233</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.234</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.235</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.236</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.237</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.238</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.239</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.240</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.241</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.242</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.243</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.244</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.245</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.246</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.247</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.248</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.249</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.250</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.251</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.252</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.253</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+          <tr>
+            <td>127.0.0.254</td>
+            <td>-</td>
+            <td>icmp</td>
+            <td>-</td>
+          </tr>
+          
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel" style="margin-top:16px;">
+      <h3>服务识别结果（含指纹置信度）</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>主机IP</th>
+            <th>端口</th>
+            <th>协议</th>
+            <th>服务名</th>
+            <th>产品</th>
+            <th>版本</th>
+            <th>指纹方法</th>
+            <th>指纹置信度</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          
+            <tr>
+              <td colspan="8">无数据</td>
+            </tr>
+          
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel" style="margin-top:16px;">
+      <h3>资产地图（分组视图）</h3>
+      <div class="meta" style="margin-top: 6px;">
+        <div>分组规则固定：IPv4 默认按 /24 网段分组；若目标网段比 /24 更小（如 /28、/32），则按目标网段分组。</div>
+        <div>发现方式主归属（用于统计）按优先级确定：icmp > arp > syn（同一主机若多种方式均发现，以优先级最高者计入）。</div>
+        <div>下方图表用于展示：主要发现方式分布、开放端口 Top10、以及漏洞匹配置信度等级分布；如无数据将显示为空。</div>
+      </div>
+
+      <div class="grid" style="margin-top: 12px;">
+        <div class="panel">
+          <h4 style="margin: 0 0 10px;">子网分组概览</h4>
+          <table>
+            <thead>
+              <tr>
+                <th>子网</th>
+                <th>主机数量</th>
+              </tr>
+            </thead>
+            <tbody>
+              
+              
+                
+                <tr>
+                  <td>127.0.0.0/24</td>
+                  <td>254</td>
+                </tr>
+                
+              
+            </tbody>
+          </table>
+        </div>
+
+        <div class="panel">
+          <h4 style="margin: 0 0 10px;">发现方式分布</h4>
+          <canvas id="discoveryChart" height="250"></canvas>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top: 12px;">
+        <div class="panel">
+          <h4 style="margin: 0 0 10px;">开放端口 Top10</h4>
+          <canvas id="portsTop10Chart" height="250"></canvas>
+        </div>
+
+        <div class="panel">
+          <h4 style="margin: 0 0 10px;">置信度等级分布</h4>
+          <canvas id="confidenceChart" height="250"></canvas>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+    const chartData = {"labels": ["HIGH", "MEDIUM", "LOW"], "data": [0, 0, 0]};
+    new Chart(document.getElementById('riskPie'), {
+      type: 'doughnut',
+      data: {
+        labels: chartData.labels,
+        datasets: [{
+          data: chartData.data,
+          backgroundColor: ['#d63031', '#e17055', '#00b894'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        plugins: {
+          legend: { position: 'bottom' }
+        }
+      }
+    });
+
+    const discoveryChartData = {"labels": ["icmp", "arp", "syn", "unknown"], "data": [254, 0, 0, 0]};
+    new Chart(document.getElementById('discoveryChart'), {
+      type: 'doughnut',
+      data: {
+        labels: discoveryChartData.labels,
+        datasets: [{
+          data: discoveryChartData.data,
+          backgroundColor: ['#0f4c81', '#3d6fa5', '#7aa6d6', '#b3cce6', '#60708a'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        plugins: {
+          legend: { position: 'bottom' }
+        }
+      }
+    });
+
+    const portsTop10ChartData = {"labels": [], "data": []};
+    new Chart(document.getElementById('portsTop10Chart'), {
+      type: 'bar',
+      data: {
+        labels: portsTop10ChartData.labels,
+        datasets: [{
+          label: '数量',
+          data: portsTop10ChartData.data,
+          backgroundColor: '#0f4c81',
+          borderWidth: 0
+        }]
+      },
+      options: {
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: { ticks: { autoSkip: false } },
+          y: { beginAtZero: true }
+        }
+      }
+    });
+
+    const confidenceChartData = {"labels": ["HIGH", "MEDIUM", "LOW"], "data": [0, 0, 0]};
+    new Chart(document.getElementById('confidenceChart'), {
+      type: 'bar',
+      data: {
+        labels: confidenceChartData.labels,
+        datasets: [{
+          label: '数量',
+          data: confidenceChartData.data,
+          backgroundColor: ['#00b894', '#e17055', '#d63031'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

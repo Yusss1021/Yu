@@ -1,0 +1,26 @@
+[
+  {
+    "cve_id": "CVE-2021-41617",
+    "service": "ssh",
+    "product": "openssh",
+    "version_rule": "<=8.8",
+    "severity": "HIGH",
+    "cvss": 7.8,
+    "description": "OpenSSH 在特定配置下可能发生权限提升。",
+    "remediation": "升级 OpenSSH 到 8.9 及以上版本，并审查 sshd 配置。",
+    "exploit_maturity": 8.2,
+    "asset_criticality": 8.0
+  },
+  {
+    "cve_id": "CVE-2021-32626",
+    "service": "redis",
+    "product": "redis",
+    "version_rule": "<=6.2.5",
+    "severity": "MEDIUM",
+    "cvss": 6.5,
+    "description": "Redis Lua 沙箱场景可能被绕过。",
+    "remediation": "升级 Redis 至 6.2.6 或以上，并配置 ACL 与绑定地址。",
+    "exploit_maturity": 6.8,
+    "asset_criticality": 8.5
+  }
+]

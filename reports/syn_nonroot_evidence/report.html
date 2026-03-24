@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>内网脆弱性扫描报告</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #1c2434;
+      --muted: #60708a;
+      --high: #d63031;
+      --medium: #e17055;
+      --low: #00b894;
+      --primary: #0f4c81;
+      --border: #e3eaf4;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(circle at top right, #e8f2ff 0%, var(--bg) 42%);
+      color: var(--text);
+    }
+    .container {
+      max-width: 1200px;
+      margin: 28px auto;
+      padding: 0 16px 40px;
+    }
+    .header {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(12, 35, 64, 0.07);
+    }
+    .meta {
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .card .value { font-size: 28px; font-weight: 700; }
+    .high { color: var(--high); }
+    .medium { color: var(--medium); }
+    .low { color: var(--low); }
+    .grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th, td {
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      padding: 8px 6px;
+      vertical-align: top;
+    }
+    th { color: var(--muted); font-weight: 600; }
+    @media (max-width: 980px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+  <script src="assets/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <section class="header">
+      <h2>面向企业内部网络的脆弱性扫描与风险评估报告</h2>
+      <div class="meta">
+        <div>生成时间：2026-02-27 14:29:44</div>
+        <div>目标网段：127.0.0.1/32</div>
+        <div>发现方法：syn</div>
+        <div>扫描端口：2222,6379</div>
+        <div>风险模型：Risk = 0.45*CVSS + 0.20*AssetCriticality + 0.15*PortExposure + 0.10*ExploitMaturity + 0.10*MatchConfidence</div>
+        <div style="margin-top: 8px;">
+          <div style="font-weight: 600;">扫描限制与建议</div>
+          <ul style="margin: 6px 0 0 18px; padding: 0;">
+            <li>权限提示（ARP/SYN权限）</li>
+            <li>准确性提示（ICMP不通/版本缺失/手动确认）</li>
+            <li>合规提示（授权网络）</li>
+          </ul>
+        </div>
+      </div>
+      <div class="cards">
+        <div class="card"><div>主机数量</div><div class="value">0</div></div>
+        <div class="card"><div>服务数量</div><div class="value">0</div></div>
+        <div class="card"><div>风险总数</div><div class="value">0</div></div>
+        <div class="card"><div>高风险</div><div class="value high">0</div></div>
+        <div class="card"><div>中风险</div><div class="value medium">0</div></div>
+        <div class="card"><div>低风险</div><div class="value low">0</div></div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <h3>Top 风险条目</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>主机</th>
+              <th>端口</th>
+              <th>服务</th>
+              <th>CVE</th>
+              <th>CVSS</th>
+              <th>资产重要性</th>
+              <th>可利用性</th>
+              <th>匹配置信度</th>
+              <th style="width: 96px;">置信度等级</th>
+              <th style="width: 120px;">确认建议</th>
+              <th>原因</th>
+              <th>风险分</th>
+              <th>等级</th>
+              <th>修复建议</th>
+            </tr>
+          </thead>
+          <tbody>
+            
+          </tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <h3>风险等级分布</h3>
+        <canvas id="riskPie" height="250"></canvas>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:16px;">
+      <h3>资产发现结果</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>IP</th>
+            <th>MAC</th>
+            <th>发现方式</th>
+            <th>开放端口</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel" style="margin-top:16px;">
+      <h3>服务识别结果（含指纹置信度）</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>主机IP</th>
+            <th>端口</th>
+            <th>协议</th>
+            <th>服务名</th>
+            <th>产品</th>
+            <th>版本</th>
+            <th>指纹方法</th>
+            <th>指纹置信度</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          
+            <tr>
+              <td colspan="8">无数据</td>
+            </tr>
+          
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel" style="margin-top:16px;">
+      <h3>资产地图（分组视图）</h3>
+      <div class="meta" style="margin-top: 6px;">
+        <div>分组规则固定：IPv4 默认按 /24 网段分组；若目标网段比 /24 更小（如 /28、/32），则按目标网段分组。</div>
+        <div>发现方式主归属（用于统计）按优先级确定：icmp > arp > syn（同一主机若多种方式均发现，以优先级最高者计入）。</div>
+        <div>下方图表用于展示：主要发现方式分布、开放端口 Top10、以及漏洞匹配置信度等级分布；如无数据将显示为空。</div>
+      </div>
+
+      <div class="grid" style="margin-top: 12px;">
+        <div class="panel">
+          <h4 style="margin: 0 0 10px;">子网分组概览</h4>
+          <table>
+            <thead>
+              <tr>
+                <th>子网</th>
+                <th>主机数量</th>
+              </tr>
+            </thead>
+            <tbody>
+              
+              
+                <tr>
+                  <td colspan="2">无数据</td>
+                </tr>
+              
+            </tbody>
+          </table>
+        </div>
+
+        <div class="panel">
+          <h4 style="margin: 0 0 10px;">发现方式分布</h4>
+          <canvas id="discoveryChart" height="250"></canvas>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top: 12px;">
+        <div class="panel">
+          <h4 style="margin: 0 0 10px;">开放端口 Top10</h4>
+          <canvas id="portsTop10Chart" height="250"></canvas>
+        </div>
+
+        <div class="panel">
+          <h4 style="margin: 0 0 10px;">置信度等级分布</h4>
+          <canvas id="confidenceChart" height="250"></canvas>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+    const chartData = {"labels": ["HIGH", "MEDIUM", "LOW"], "data": [0, 0, 0]};
+    new Chart(document.getElementById('riskPie'), {
+      type: 'doughnut',
+      data: {
+        labels: chartData.labels,
+        datasets: [{
+          data: chartData.data,
+          backgroundColor: ['#d63031', '#e17055', '#00b894'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        plugins: {
+          legend: { position: 'bottom' }
+        }
+      }
+    });
+
+    const discoveryChartData = {"labels": ["icmp", "arp", "syn", "unknown"], "data": [0, 0, 0, 0]};
+    new Chart(document.getElementById('discoveryChart'), {
+      type: 'doughnut',
+      data: {
+        labels: discoveryChartData.labels,
+        datasets: [{
+          data: discoveryChartData.data,
+          backgroundColor: ['#0f4c81', '#3d6fa5', '#7aa6d6', '#b3cce6', '#60708a'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        plugins: {
+          legend: { position: 'bottom' }
+        }
+      }
+    });
+
+    const portsTop10ChartData = {"labels": [], "data": []};
+    new Chart(document.getElementById('portsTop10Chart'), {
+      type: 'bar',
+      data: {
+        labels: portsTop10ChartData.labels,
+        datasets: [{
+          label: '数量',
+          data: portsTop10ChartData.data,
+          backgroundColor: '#0f4c81',
+          borderWidth: 0
+        }]
+      },
+      options: {
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: { ticks: { autoSkip: false } },
+          y: { beginAtZero: true }
+        }
+      }
+    });
+
+    const confidenceChartData = {"labels": ["HIGH", "MEDIUM", "LOW"], "data": [0, 0, 0]};
+    new Chart(document.getElementById('confidenceChart'), {
+      type: 'bar',
+      data: {
+        labels: confidenceChartData.labels,
+        datasets: [{
+          label: '数量',
+          data: confidenceChartData.data,
+          backgroundColor: ['#00b894', '#e17055', '#d63031'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
