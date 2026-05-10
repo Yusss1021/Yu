@@ -1,0 +1,17 @@
+.venv/
+.runtime/
+__pycache__/
+*.py[cod]
+
+lab/run/
+
+data/scans.db
+data/discovery_sessions/
+data/tmp.db
+data/manual_*/
+data/gui_custom_*/
+reports/
+
+# Thesis / paper files — not part of the project
+docs/thesis/
+docs/chapter4_*.md

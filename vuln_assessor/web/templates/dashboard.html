@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+  <div class="headline">
+    <h1>报告中心</h1>
+    <div class="subtitle">桌面端负责控制扫描，Web 端仅负责报告查看、详情检索与历史对比</div>
+  </div>
+  <div class="grid stats">
+    <div class="card">
+      <div class="metric-label">历史报告数</div>
+      <div class="metric-value">{{ stats.total_scans }}</div>
+    </div>
+    <div class="card">
+      <div class="metric-label">累计服务数</div>
+      <div class="metric-value">{{ stats.total_services }}</div>
+    </div>
+    <div class="card">
+      <div class="metric-label">累计风险数</div>
+      <div class="metric-value">{{ stats.total_risks }}</div>
+    </div>
+    <div class="card">
+      <div class="metric-label">最近报告ID</div>
+      <div class="metric-value">{{ stats.latest_scan_id or "-" }}</div>
+    </div>
+    <div class="card">
+      <div class="metric-label">最近需人工确认</div>
+      <div class="metric-value">{{ stats.manual_confirm_needed_latest or 0 }}</div>
+    </div>
+  </div>
+</section>
+
+<section class="section split">
+  <article class="card">
+    <div class="headline">
+      <h2>使用方式</h2>
+      <div class="hint">控制与展示职责已分离</div>
+    </div>
+    <ul>
+      <li><strong>桌面端</strong>：执行资产发现、服务识别、漏洞匹配、规则库导入更新。</li>
+      <li><strong>Web 端</strong>：查看报告、浏览扫描详情、执行历史报告对比。</li>
+      <li><strong>数据来源</strong>：当前页面展示的是数据库中已完成分析并生成报告的历史记录。</li>
+    </ul>
+    <div class="actions">
+      <a class="btn secondary" href="{{ url_for('compare_page') }}">前往历史对比</a>
+      {% if stats.latest_scan_id %}
+      <a class="btn primary" href="{{ url_for('view_report', scan_id=stats.latest_scan_id) }}" target="_blank">打开最新报告</a>
+      {% endif %}
+    </div>
+  </article>
+
+  <article class="card">
+    <div class="headline">
+      <h2>最近报告路径</h2>
+      <div class="hint">用于确认报告落盘位置</div>
+    </div>
+    {% if stats.latest_report_path %}
+    <div class="mono">{{ stats.latest_report_path }}</div>
+    {% else %}
+    <div class="hint">暂无已生成报告。</div>
+    {% endif %}
+  </article>
+</section>
+
+<section class="section">
+  <article class="card">
+    <div class="headline">
+      <h2>历史报告列表</h2>
+      <div class="hint">点击扫描 ID 查看详情，点击“查看”直接打开 HTML 报告</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>时间</th>
+          <th>目标</th>
+          <th>主机</th>
+          <th>服务</th>
+          <th>风险</th>
+          <th>高中低</th>
+          <th>报告</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in scans %}
+        <tr>
+          <td><a href="{{ url_for('scan_detail', scan_id=row.id) }}">{{ row.id }}</a></td>
+          <td class="mono">{{ row.started_at }}</td>
+          <td>{{ row.target }}</td>
+          <td>{{ row.total_hosts }}</td>
+          <td>{{ row.total_services }}</td>
+          <td>{{ row.total_risks }}</td>
+          <td>{{ row.high_count }}/{{ row.medium_count }}/{{ row.low_count }}</td>
+          <td><a href="{{ url_for('view_report', scan_id=row.id) }}" target="_blank">查看</a></td>
+          <td>
+            <form class="inline-form" method="post" action="{{ url_for('delete_scan', scan_id=row.id) }}">
+              <button class="btn danger compact" type="submit" onclick="return confirm('确认删除报告 #{{ row.id }} 及其历史记录吗？');">删除</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="9">暂无历史报告，请先在桌面控制台完成一次资产发现与分析。</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </article>
+</section>
+{% endblock %}
